@@ -1,9 +1,13 @@
 package com.example.timemanager;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -25,10 +29,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        timer = new CustomTimer(this);
 
         tvOut = findViewById(R.id.tvTime);
         lvOut = findViewById(R.id.lvStats);
@@ -42,6 +45,34 @@ public class MainActivity extends AppCompatActivity {
             timer.setCurrentTask(etTask.getText().toString());
             timer.startTimer();
         });
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        timer = new CustomTimer(this);
+        timer.renderAdapter();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+        if (id == R.id.delete_chosen) {
+            timer.deleteTask(etTask.getText().toString());
+            timer.renderAdapter();
+        }
+        if (id == R.id.delete_all) {
+            timer.clearTasks();
+            timer.renderAdapter();
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -64,6 +95,19 @@ public class MainActivity extends AppCompatActivity {
 
     private class CustomTimer extends TimerApp {
 
+        @Override
+        public void deleteTask(String task) {
+            super.deleteTask(task);
+            updateTimer();
+        }
+
+        @Override
+        public void clearTasks() {
+            super.clearTasks();
+            stopTimer();
+            updateTimer();
+        }
+
         public CustomTimer(Context context) {
             super(context);
         }
@@ -79,15 +123,31 @@ public class MainActivity extends AppCompatActivity {
             super.startTimer();
         }
 
-        String[] from = { "text"};
-        int[] to = { R.id.tvText};
+
+
+        long durationInMillis, millis, second, minute, hour;
 
         @Override
         public void updateTimer() {
 
             if (currentTask == nullTask) return;
 
-            tvOut.setText(String.valueOf((float)currentTask.time / 1000.0f));
+            durationInMillis = currentTask.time;
+            millis = durationInMillis % 1000;
+            second = (durationInMillis / 1000) % 60;
+            minute = (durationInMillis / (60000)) % 60;
+            hour = (durationInMillis / (3600000));
+
+            tvOut.setText(String.format("%02d:%02d:%02d.%d", hour, minute, second, millis));
+
+            runOnUiThread(() -> {
+                renderAdapter();
+            });
+        }
+
+        String[] from = { "text", "value"};
+        int[] to = { R.id.tvText, R.id.tvValue};
+        public void renderAdapter() {
 
             ArrayList<Map<String, Object>> data = new ArrayList<>(
                     taskTimes.size());
@@ -95,16 +155,15 @@ public class MainActivity extends AppCompatActivity {
 
             for (int i = 0; i < taskTimes.size(); i++) {
                 m = new HashMap<>();
-                m.put("text", taskTimes.get(i).task +  " >=< " + taskTimes.get(i).time / 60000 + " mins");
+                m.put("text", taskTimes.get(i).task);
+                m.put("value", taskTimes.get(i).time / 60000 + " mins");
                 data.add(m);
             }
 
-            runOnUiThread(() -> {
-                SimpleAdapter sAdapter = new SimpleAdapter(context, data, R.layout.item_task,
-                        from, to);
+            SimpleAdapter sAdapter = new SimpleAdapter(context, data, R.layout.item_task,
+                    from, to);
 
-                lvOut.setAdapter(sAdapter);
-            });
+            lvOut.setAdapter(sAdapter);
         }
     }
 }

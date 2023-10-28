@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/delete_chosen"
+        android:orderInCategory="100"
+        android:title="Delete task" />
+    <item
+        android:id="@+id/nothing"
+        android:orderInCategory="100"
+        android:title="." />
+    <item
+        android:id="@+id/nothing2"
+        android:orderInCategory="100"
+        android:title="." />
+    <item
+        android:id="@+id/delete_all"
+        android:orderInCategory="100"
+        android:title="Delete all tasks" />
+</menu>

@@ -20,7 +20,7 @@ public abstract class TimerApp {
     protected Timer timer;
     protected long startTime;
     protected boolean isRunning;
-    protected TaskTime nullTask = new TaskTime("NULL TASK", 0);
+    public static final TaskTime nullTask = new TaskTime("NULL TASK", 0);
     protected TaskTime currentTask = nullTask;
     protected ArrayList<TaskTime> taskTimes;
 
@@ -35,7 +35,6 @@ public abstract class TimerApp {
         timer = new Timer();
         startTime = 0;
         isRunning = false;
-        taskTimes = new ArrayList<>();
 
         startTime = System.currentTimeMillis();
 
@@ -63,6 +62,7 @@ public abstract class TimerApp {
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+            taskTimes = new ArrayList<>();
         }
     }
 
@@ -95,6 +95,20 @@ public abstract class TimerApp {
 
         currentTask = new TaskTime(task, 0);
         taskTimes.add(currentTask);
+    }
+    public void deleteTask(String task) {
+
+        stopTimer();
+        for (int i = 0; i < taskTimes.size(); i++) {
+            if (taskTimes.get(i).task.equals(task)) {
+                taskTimes.remove(i);
+                i--;
+            }
+        }
+    }
+    public void clearTasks() {
+        stopTimer();
+        taskTimes.clear();
     }
 
     public ArrayList<TaskTime> getTaskTimes() {
