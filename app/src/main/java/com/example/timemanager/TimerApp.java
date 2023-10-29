@@ -53,7 +53,7 @@ public abstract class TimerApp {
 
                 updateTimer();
             }
-        }, 0, 10);
+        }, 0, 50);
 
         try {
             FileInputStream fis = context.openFileInput(savefilename);
