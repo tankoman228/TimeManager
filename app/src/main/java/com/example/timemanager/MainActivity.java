@@ -1,5 +1,7 @@
 package com.example.timemanager;
 
+import static com.example.timemanager.TimerApp.nullTask;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -17,15 +19,14 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TimerCallback {
 
-    CustomTimer timer;
     TextView tvOut;
     ListView lvOut;
     EditText etTask;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,20 +38,24 @@ public class MainActivity extends AppCompatActivity {
         lvOut = findViewById(R.id.lvStats);
         etTask = findViewById(R.id.etTask);
 
+        TimerService.currentActivity = this;
+
         findViewById(R.id.btnStop).setOnClickListener(view -> {
-            timer.stopTimer();
+            TimerService.timer.stopTimer();
         });
 
         findViewById(R.id.btnStart).setOnClickListener(view -> {
-            timer.setCurrentTask(etTask.getText().toString());
-            timer.startTimer();
+            TimerService.timer.setCurrentTask(etTask.getText().toString());
+            TimerService.timer.startTimer();
         });
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        timer = new CustomTimer(this);
-        timer.renderAdapter();
+        Intent intent = new Intent(this, TimerService.class);
+        startService(intent);
+
+        //TimerService.timer.updateTimer();
     }
 
     @Override
@@ -64,12 +69,12 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.delete_chosen) {
-            timer.deleteTask(etTask.getText().toString());
-            timer.renderAdapter();
+            TimerService.timer.deleteTask(etTask.getText().toString());
+            TimerService.timer.updateTimer();
         }
         if (id == R.id.delete_all) {
-            timer.clearTasks();
-            timer.renderAdapter();
+            TimerService.timer.clearTasks();
+            TimerService.timer.updateTimer();
         }
 
         return super.onOptionsItemSelected(item);
@@ -84,70 +89,33 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        timer.saveTasksTime();
+        TimerService.timer.saveTasksTime();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        timer.saveTasksTime();
+        TimerService.timer.saveTasksTime();
     }
 
-    private class CustomTimer extends TimerApp {
 
-        @Override
-        public void deleteTask(String task) {
-            super.deleteTask(task);
-            updateTimer();
-        }
+    long durationInMillis, millis, second, minute, hour;
+    String[] from = { "text", "value"};
+    int[] to = { R.id.tvText, R.id.tvValue};
+    @Override
+    public void onTimerTick(TaskTime currentTask, List<TaskTime> taskTimes) {
 
-        @Override
-        public void clearTasks() {
-            super.clearTasks();
-            stopTimer();
-            updateTimer();
-        }
+        durationInMillis = currentTask.time;
+        millis = durationInMillis % 1000;
+        second = (durationInMillis / 1000) % 60;
+        minute = (durationInMillis / (60000)) % 60;
+        hour = (durationInMillis / (3600000));
 
-        public CustomTimer(Context context) {
-            super(context);
-        }
+        runOnUiThread(() -> {
 
-        @Override
-        public void startTimer() {
-
-            if (currentTask == null) {
-                Toast.makeText(context, "No task chosen", Toast.LENGTH_SHORT).show();
-                return;
+            if (currentTask != nullTask) {
+                tvOut.setText(String.format("%02d:%02d:%02d.%d", hour, minute, second, millis));
             }
-
-            super.startTimer();
-        }
-
-
-
-        long durationInMillis, millis, second, minute, hour;
-
-        @Override
-        public void updateTimer() {
-
-            if (currentTask == nullTask) return;
-
-            durationInMillis = currentTask.time;
-            millis = durationInMillis % 1000;
-            second = (durationInMillis / 1000) % 60;
-            minute = (durationInMillis / (60000)) % 60;
-            hour = (durationInMillis / (3600000));
-
-            tvOut.setText(String.format("%02d:%02d:%02d.%d", hour, minute, second, millis));
-
-            runOnUiThread(() -> {
-                renderAdapter();
-            });
-        }
-
-        String[] from = { "text", "value"};
-        int[] to = { R.id.tvText, R.id.tvValue};
-        public void renderAdapter() {
 
             ArrayList<Map<String, Object>> data = new ArrayList<>(
                     taskTimes.size());
@@ -160,10 +128,11 @@ public class MainActivity extends AppCompatActivity {
                 data.add(m);
             }
 
-            SimpleAdapter sAdapter = new SimpleAdapter(context, data, R.layout.item_task,
+            SimpleAdapter sAdapter = new SimpleAdapter(this, data, R.layout.item_task,
                     from, to);
 
             lvOut.setAdapter(sAdapter);
-        }
+        });
     }
+
 }

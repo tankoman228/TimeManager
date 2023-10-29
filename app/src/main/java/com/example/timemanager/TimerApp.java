@@ -35,6 +35,7 @@ public abstract class TimerApp {
         timer = new Timer();
         startTime = 0;
         isRunning = false;
+        taskTimes = new ArrayList<>();
 
         startTime = System.currentTimeMillis();
 
@@ -128,28 +129,5 @@ public abstract class TimerApp {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        /*
-        // Save task time to file with today's date in the name
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        String fileName = "task_times_" + dateFormat.format(new Date()) + ".txt";
-
-        try {
-            File file = new File(fileName);
-            FileWriter writer = new FileWriter(file, false);
-
-            for (TaskTime tt : taskTimes) {
-                writer.write(
-                        tt.task + " : " + tt.time / 60000 + " min + \n"
-                );
-            }
-
-            writer.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-
     }
 }
