@@ -53,8 +53,7 @@ public class MainActivity extends AppCompatActivity implements TimerCallback {
         setSupportActionBar(toolbar);
 
         Intent intent = new Intent(this, TimerService.class);
-        startService(intent);
-
+        startForegroundService(intent);
         //TimerService.timer.updateTimer();
     }
 
