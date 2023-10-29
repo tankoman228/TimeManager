@@ -28,7 +28,7 @@ public class TimerService extends Service {
         timer = new CustomTimer(this);
         timer.updateTimer();
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
