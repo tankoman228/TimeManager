@@ -9,21 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.widget.SimpleAdapter;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class TimerService extends Service {
 
+    public static TimerService THIS;
     public static CustomTimer timer;
     public static TimerCallback currentActivity;
 
@@ -32,6 +24,8 @@ public class TimerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        THIS = this;
 
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "My Service Channel",
                 NotificationManager.IMPORTANCE_HIGH);
@@ -62,6 +56,9 @@ public class TimerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         timer.saveTasksTime();
+        stopForeground(true);
+        stopSelf();
+        timer.timer.cancel();
     }
 
     @Nullable
@@ -81,18 +78,21 @@ public class TimerService extends Service {
         @Override
         public void deleteTask(String task) {
             super.deleteTask(task);
+            currentActivity.RebuildAdapter(taskTimes);
             updateTimer();
         }
 
         @Override
         public void clearTasks() {
             super.clearTasks();
+            currentActivity.RebuildAdapter(taskTimes);
             stopTimer();
             updateTimer();
         }
 
         public CustomTimer(Context context) {
             super(context);
+            currentActivity.RebuildAdapter(taskTimes);
         }
 
         @Override
