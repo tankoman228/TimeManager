@@ -15,7 +15,7 @@ import androidx.core.app.NotificationCompat;
 
 public class TimerService extends Service {
 
-    public static TimerService THIS;
+    public static TimerService THIS = null;
     public static CustomTimer timer;
     public static TimerCallback currentActivity;
 
@@ -59,6 +59,7 @@ public class TimerService extends Service {
         stopForeground(true);
         stopSelf();
         timer.timer.cancel();
+        THIS = null;
     }
 
     @Nullable
@@ -78,21 +79,24 @@ public class TimerService extends Service {
         @Override
         public void deleteTask(String task) {
             super.deleteTask(task);
-            currentActivity.RebuildAdapter(taskTimes);
+            if (currentActivity != null)
+                currentActivity.RebuildAdapter(taskTimes);
             updateTimer();
         }
 
         @Override
         public void clearTasks() {
             super.clearTasks();
-            currentActivity.RebuildAdapter(taskTimes);
+            if (currentActivity != null)
+                currentActivity.RebuildAdapter(taskTimes);
             stopTimer();
             updateTimer();
         }
 
         public CustomTimer(Context context) {
             super(context);
-            currentActivity.RebuildAdapter(taskTimes);
+            if (currentActivity != null)
+                currentActivity.RebuildAdapter(taskTimes);
         }
 
         @Override
@@ -102,7 +106,9 @@ public class TimerService extends Service {
 
         @Override
         public void updateTimer() {
-            currentActivity.onTimerTick(currentTask, taskTimes);
+
+            if (currentActivity != null)
+                currentActivity.onTimerTick(currentTask, taskTimes);
         }
     }
 }

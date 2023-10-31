@@ -16,4 +16,16 @@
         android:id="@+id/delete_all"
         android:orderInCategory="100"
         android:title="Delete all tasks" />
+    <item
+        android:id="@+id/nothing3"
+        android:orderInCategory="100"
+        android:title="." />
+    <item
+        android:id="@+id/nothing4"
+        android:orderInCategory="100"
+        android:title="." />
+    <item
+        android:id="@+id/stop_service"
+        android:orderInCategory="100"
+        android:title="Stop Service" />
 </menu>

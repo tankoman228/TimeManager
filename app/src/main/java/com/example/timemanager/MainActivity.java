@@ -39,8 +39,6 @@ public class MainActivity extends AppCompatActivity implements TimerCallback {
         lvOut = findViewById(R.id.lvStats);
         etTask = findViewById(R.id.etTask);
 
-        TimerService.currentActivity = this;
-
         findViewById(R.id.btnStop).setOnClickListener(view -> {
             TimerService.timer.stopTimer();
         });
@@ -54,8 +52,38 @@ public class MainActivity extends AppCompatActivity implements TimerCallback {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Intent intent = new Intent(this, TimerService.class);
-        startForegroundService(intent);
+        TimerService.currentActivity = this;
+        if (TimerService.THIS == null) {
+            Intent intent = new Intent(this, TimerService.class);
+            startForegroundService(intent);
+        }
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            //throw new RuntimeException(e);
+        }
+
+        try {
+            RebuildAdapter(TimerService.timer.taskTimes);
+        }
+        catch (NullPointerException e) {
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e3) {
+                e3.printStackTrace();
+                //throw new RuntimeException(e);
+            }
+
+            try {
+                RebuildAdapter(TimerService.timer.taskTimes);
+            }
+            catch (NullPointerException e2) {
+
+            }
+        }
         //TimerService.timer.updateTimer();
     }
 
@@ -77,6 +105,10 @@ public class MainActivity extends AppCompatActivity implements TimerCallback {
             TimerService.timer.clearTasks();
             RebuildAdapter(TimerService.timer.taskTimes);
         }
+        if (id == R.id.stop_service) {
+            Intent intent = new Intent(this, TimerService.class);
+            stopService(intent);
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -89,17 +121,15 @@ public class MainActivity extends AppCompatActivity implements TimerCallback {
 
     @Override
     protected void onDestroy() {
-
         super.onDestroy();
-
-        Intent intent = new Intent(this, TimerService.class);
-        stopService(intent);
+        TimerService.timer.saveTasksTime();
+        //Intent intent = new Intent(this, TimerService.class);
+        //stopService(intent);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        TimerService.timer.saveTasksTime();
     }
 
 
@@ -138,10 +168,8 @@ public class MainActivity extends AppCompatActivity implements TimerCallback {
 
         });
     }
-
     String[] from = { "text", "value"};
     int[] to = { R.id.tvText, R.id.tvValue};
-
     @Override
     public void RebuildAdapter(List<TaskTime> taskTimes) {
         ArrayList<Map<String, Object>> data = new ArrayList<>(
